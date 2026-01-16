@@ -52,7 +52,7 @@ async function fetchAndProcess(url: string): Promise<string[]> {
         // Extract paragraphs
         const paragraphs: string[] = [];
         $content.find('p, h1, h2, h3, h4').each((_, el) => {
-            const tagName = $(el).prop('tagName').toLowerCase();
+            const tagName = $(el).prop('tagName')?.toLowerCase() || '';
             const text = $(el).text().trim();
             const html = $(el).html();
 
