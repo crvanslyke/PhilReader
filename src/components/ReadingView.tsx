@@ -8,28 +8,37 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Textarea } from '@/components/ui/textarea';
 import { CheckCircle2, Circle, Download } from 'lucide-react';
 import { downloadCSV } from '@/lib/export';
-import { getAllReadings } from '@/lib/readings';
+import { getAllReadings, getReadingForDate } from '@/lib/readings';
 
 interface ReadingViewProps {
-    reading: Reading;
+    initialReading?: Reading;
 }
 
-export function ReadingView({ reading }: ReadingViewProps) {
+export function ReadingView({ initialReading }: ReadingViewProps) {
     const { isLoaded, logs, getLog, markAsRead, saveReflection } = useReadingProgress();
+    const [reading, setReading] = useState<Reading | null>(initialReading || null);
     const [reflectionText, setReflectionText] = useState('');
+
+    // Calculate reading on client side to respect local timezone if not provided
+    useEffect(() => {
+        if (!reading) {
+            const today = new Date();
+            setReading(getReadingForDate(today));
+        }
+    }, [reading]);
 
     // Load existing reflection when data is ready
     useEffect(() => {
-        if (isLoaded) {
+        if (isLoaded && reading) {
             const log = getLog(reading.id);
             if (log?.reflection) {
                 setReflectionText(log.reflection);
             }
         }
-    }, [isLoaded, reading.id, getLog]);
+    }, [isLoaded, reading, getLog]);
 
-    if (!isLoaded) {
-        return <div className="p-8 text-center text-muted-foreground">Loading progress...</div>;
+    if (!isLoaded || !reading) {
+        return <div className="p-8 text-center text-muted-foreground">Loading daily reading...</div>;
     }
 
     const log = getLog(reading.id);
